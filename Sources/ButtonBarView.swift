@@ -186,12 +186,11 @@ open class ButtonBarView: UICollectionView {
 
     open func resizeFrame(forProper frame: CGRect) -> CGRect {
         let reducesSpace: CGFloat = 10.0
+        // reduce frame
         let newFrame = CGRect(x: frame.origin.x + reducesSpace,
                               y: frame.origin.y,
                               width: frame.size.width - (reducesSpace * 2),
                               height: frame.size.height)
-        print("RESIZE FRAME:", frame, newFrame)
-        // reduce frame
         return newFrame
     }
 
