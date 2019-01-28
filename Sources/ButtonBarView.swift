@@ -47,6 +47,8 @@ open class ButtonBarView: UICollectionView {
 
     open lazy var selectedBar: UIView = { [unowned self] in
         let bar  = UIView(frame: CGRect(x: 0, y: self.frame.size.height - CGFloat(self.selectedBarHeight), width: 0, height: CGFloat(self.selectedBarHeight)))
+        bar.layer.cornerRadius = CGFloat(self.selectedBarHeight) / 2
+        bar.layer.masksToBounds = true
         bar.layer.zPosition = 9999
         return bar
     }()
@@ -77,7 +79,6 @@ open class ButtonBarView: UICollectionView {
 
     open func move(fromIndex: Int, toIndex: Int, progressPercentage: CGFloat, pagerScroll: PagerScroll) {
         selectedIndex = progressPercentage > 0.5 ? toIndex : fromIndex
-
         let fromFrame = layoutAttributesForItem(at: IndexPath(item: fromIndex, section: 0))!.frame
         let numberOfItems = dataSource!.collectionView(self, numberOfItemsInSection: 0)
 
@@ -100,7 +101,7 @@ open class ButtonBarView: UICollectionView {
         targetFrame.size.width += (toFrame.size.width - fromFrame.size.width) * progressPercentage
         targetFrame.origin.x += (toFrame.origin.x - fromFrame.origin.x) * progressPercentage
 
-        selectedBar.frame = CGRect(x: targetFrame.origin.x, y: selectedBar.frame.origin.y, width: targetFrame.size.width, height: selectedBar.frame.size.height)
+        selectedBar.frame =  resizeFrame(forProper: CGRect(x: targetFrame.origin.x, y: selectedBar.frame.origin.y, width: targetFrame.size.width, height: selectedBar.frame.size.height))
 
         var targetContentOffset: CGFloat = 0.0
         if contentSize.width > frame.size.width {
@@ -115,7 +116,6 @@ open class ButtonBarView: UICollectionView {
 
     open func updateSelectedBarPosition(_ animated: Bool, swipeDirection: SwipeDirection, pagerScroll: PagerScroll) {
         var selectedBarFrame = selectedBar.frame
-
         let selectedCellIndexPath = IndexPath(item: selectedIndex, section: 0)
         let attributes = layoutAttributesForItem(at: selectedCellIndexPath)
         let selectedCellFrame = attributes!.frame
@@ -127,10 +127,10 @@ open class ButtonBarView: UICollectionView {
 
         if animated {
             UIView.animate(withDuration: 0.3, animations: { [weak self] in
-                self?.selectedBar.frame = selectedBarFrame
+                self?.selectedBar.frame = self?.resizeFrame(forProper: selectedBarFrame) ?? .zero
             })
         } else {
-            selectedBar.frame = selectedBarFrame
+            selectedBar.frame = resizeFrame(forProper: selectedBarFrame)
         }
     }
 
@@ -182,6 +182,17 @@ open class ButtonBarView: UICollectionView {
 
         selectedBarFrame.size.height = selectedBarHeight
         selectedBar.frame = selectedBarFrame
+    }
+
+    open func resizeFrame(forProper frame: CGRect) -> CGRect {
+        let reducesSpace: CGFloat = 10.0
+        let newFrame = CGRect(x: frame.origin.x + reducesSpace,
+                              y: frame.origin.y,
+                              width: frame.size.width - (reducesSpace * 2),
+                              height: frame.size.height)
+        print("RESIZE FRAME:", frame, newFrame)
+        // reduce frame
+        return newFrame
     }
 
     override open func layoutSubviews() {
